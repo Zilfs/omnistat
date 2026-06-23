@@ -1,7 +1,11 @@
 mod core;
 
-use core::memory::track_memory_usage;
+use core::memory::MemoryStats;
 
 fn main() {
-    track_memory_usage();
+    let _stats_memory_receiver = MemoryStats::start_tracking();
+
+    loop {
+        std::thread::park();
+    }
 }

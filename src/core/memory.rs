@@ -1,18 +1,50 @@
-use std::{thread::sleep, time::Duration};
+use std::{
+    sync::mpsc::{Receiver, channel},
+    thread::{self, sleep},
+    time::Duration,
+};
 
 use sysinfo::System;
 
-pub fn track_memory_usage() {
-    let mut system = System::new();
+pub struct MemoryStats {
+    pub total_memory: u64,
+    pub used_memory: u64,
+    pub free_memory: u64,
+}
 
-    loop {
+impl MemoryStats {
+    fn fetch(system: &mut System) -> Self {
         system.refresh_all();
 
-        let total_memory = system.total_memory() / 1024 / 1024;
-        let used_memory = system.used_memory() / 1024 / 1024;
+        MemoryStats {
+            total_memory: system.total_memory(),
+            used_memory: system.used_memory(),
+            free_memory: system.free_memory(),
+        }
+    }
 
-        println!("Memory usage: {} MB / {} MB", used_memory, total_memory);
+    pub fn start_tracking() -> Receiver<Self> {
+        let (tx, rx) = channel();
 
-        sleep(Duration::from_secs(3));
+        let mut system = System::new();
+
+        thread::spawn(move || {
+            loop {
+                let stats = Self::fetch(&mut system);
+
+                println!(
+                    "Memory usage: {} MB / {} MB (free {} MB)",
+                    stats.used_memory, stats.total_memory, stats.free_memory
+                );
+
+                if tx.send(stats).is_err() {
+                    break;
+                }
+
+                sleep(Duration::from_secs(3));
+            }
+        });
+
+        rx
     }
 }
