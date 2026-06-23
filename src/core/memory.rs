@@ -19,9 +19,9 @@ impl MemoryStats {
         system.refresh_all();
 
         MemoryStats {
-            total_memory: system.total_memory(),
-            used_memory: system.used_memory(),
-            free_memory: system.free_memory(),
+            total_memory: bytes_to_mb(system.total_memory()),
+            used_memory: bytes_to_mb(system.used_memory()),
+            free_memory: bytes_to_mb(system.free_memory()),
         }
     }
 
@@ -34,12 +34,12 @@ impl MemoryStats {
             loop {
                 let stats = Self::fetch(&mut system);
 
-                println!(
-                    "Memory usage: {} MB / {} MB (free {} MB)",
-                    bytes_to_mb(stats.used_memory),
-                    bytes_to_mb(stats.total_memory),
-                    bytes_to_mb(stats.free_memory)
-                );
+                // println!(
+                //     "Memory usage: {} MB / {} MB (free {} MB)",
+                //     bytes_to_mb(stats.used_memory),
+                //     bytes_to_mb(stats.total_memory),
+                //     bytes_to_mb(stats.free_memory)
+                // );
 
                 if tx.send(stats).is_err() {
                     break;

@@ -1,9 +1,16 @@
-use omnistate::core::memory::MemoryStats;
+use std::io;
 
-fn main() {
-    let _stats_memory_receiver = MemoryStats::start_tracking();
+use omnistate::{App, core::memory::MemoryStats};
 
-    loop {
-        std::thread::park();
-    }
+fn main() -> io::Result<()> {
+    let stats_memory_receiver = MemoryStats::start_tracking();
+
+    let terminal = ratatui::init();
+    let mut app = App::default();
+
+    let result = app.run(terminal, stats_memory_receiver);
+
+    ratatui::restore();
+
+    result
 }
