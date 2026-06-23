@@ -1,3 +1,5 @@
+use crate::utils::convert::bytes_to_mb;
+
 use std::{
     sync::mpsc::{Receiver, channel},
     thread::{self, sleep},
@@ -34,7 +36,9 @@ impl MemoryStats {
 
                 println!(
                     "Memory usage: {} MB / {} MB (free {} MB)",
-                    stats.used_memory, stats.total_memory, stats.free_memory
+                    bytes_to_mb(stats.used_memory),
+                    bytes_to_mb(stats.total_memory),
+                    bytes_to_mb(stats.free_memory)
                 );
 
                 if tx.send(stats).is_err() {
