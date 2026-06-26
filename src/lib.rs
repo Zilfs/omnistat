@@ -14,6 +14,9 @@ pub struct App {
     pub total_memory: u64,
     pub used_memory: u64,
     pub free_memory: u64,
+
+    pub memory_history: Vec<u64>,
+
     pub exit: bool,
 }
 
@@ -34,6 +37,11 @@ impl App {
                 self.total_memory = stats.total_memory;
                 self.used_memory = stats.used_memory;
                 self.free_memory = stats.free_memory;
+
+                self.memory_history.push(stats.used_memory);
+                if self.memory_history.len() > 50 {
+                    self.memory_history.remove(0);
+                }
             }
 
             if event::poll(Duration::from_millis(50))? {

@@ -1,10 +1,11 @@
-pub mod memory; // Register your sub-widget file
+pub mod charts;
+pub mod memory;
 
 use crate::App;
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
-    style::Stylize,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Style, Stylize},
     text::Line,
     widgets::{Block, Widget},
 };
@@ -18,8 +19,28 @@ pub fn render(app: &App, area: Rect, buf: &mut Buffer) {
     let inner_area = global_block.inner(area);
     global_block.render(area, buf);
 
-    // 2. Route the memory area rendering to your specialized file
-    // As OmniStat grows, you will use Layout chunks here to split the screen
-    // between memory::render_memory_widget, cpu::render_cpu_widget, etc.
-    memory::render_memory_widget(app, inner_area, buf);
+    let current_usage = app.memory_history.last().unwrap_or(&0);
+    let title = format!(" Memory Usage History (Current: {} MB) ", current_usage);
+
+    let memory_block = Block::bordered()
+        .title(title.bold())
+        .border_style(Style::default().fg(Color::Cyan));
+
+    let memory_inner_area = memory_block.inner(inner_area);
+    memory_block.render(inner_area, buf);
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .flex(ratatui::layout::Flex::Start)
+        .constraints([Constraint::Length(30), Constraint::Min(0)])
+        .split(memory_inner_area);
+
+    let chart_area = Layout::default()
+        .direction(Direction::Horizontal)
+        .flex(ratatui::layout::Flex::Start)
+        .constraints([Constraint::Length(50)])
+        .split(chunks[0])[0];
+
+    charts::memory::render_memory_chart(app, chart_area, buf);
+    memory::render_memory_widget(app, chunks[0], buf);
 }
